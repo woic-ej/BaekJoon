@@ -1,0 +1,82 @@
+#include <bits/stdc++.h> 
+using namespace std;
+
+int maze[1002][1002];		// 미로 
+int vis[1002][1002];		// 방문여부를 따져주는 배열
+int fire[1002][1002]; 		// 불이 번지는데 걸리는 시간
+int jh[1002][1002];			// 지훈이가 탈출하는데 걸리는 시간
+queue <pair<int,int>> fq;	// 불에 대한 큐
+queue <pair<int,int>> jq; 	// 지훈이에 대한 큐 
+int r, c;		// r은 행, c는 열
+
+int dx[4] = {0, -1, 0, 1};
+int dy[4] = {1, 0, -1, 0};
+
+void F_BFS() {
+	while(!fq.empty()) {
+		pair<int,int> cur = fq.front(); fq.pop();
+		for(int dir = 0; dir < 4; dir++){
+			int nx = cur.first + dx[dir];
+			int ny = cur.second + dy[dir];
+			if(nx < 0 || nx >= r || ny < 0 || ny >= c) continue;
+			if(vis[nx][ny] || maze[nx][ny] == '#') continue;
+			vis[nx][ny] = 1;
+			fire[nx][ny] =  fire[cur.first][cur.second] + 1;
+			fq.push({nx,ny});
+		}
+	}
+}
+
+int J_BFS() {
+	while(!jq.empty()) {
+		pair<int,int> cur = jq.front(); jq.pop();
+		for(int dir = 0; dir < 4; dir++){
+			int nx = cur.first + dx[dir];
+			int ny = cur.second + dy[dir];
+			if(nx < 0 || nx >= r || ny < 0 || ny >= c)
+				return jh[cur.first][cur.second] + 1;
+			if(vis[nx][ny] || maze[nx][ny] == '#'|| maze[nx][ny] == 'F') continue;
+			if(fire[nx][ny] != 0 && fire[nx][ny] <= jh[cur.first][cur.second] + 1) continue;
+			vis[nx][ny] = 1;
+			jh[nx][ny] = jh[cur.first][cur.second] + 1;
+			jq.push({nx,ny});
+		}
+	}
+	return 0;
+}
+
+int main(void) {
+	ios::sync_with_stdio(0), cin.tie(0);
+	
+	cin >> r >> c;
+	
+	for(int i = 0; i < r; i++){
+		string str = "";
+		cin >> str;
+		for(int j = 0; j < c; j++) {
+			maze[i][j] = str[j];
+			if(str[j] == 'F') {
+				fq.push({i,j});	
+				vis[i][j] = 1;
+			}
+			else if(str[j] == 'J'){
+				jq.push({i,j});
+				vis[i][j] = 1;
+			} 
+		}
+	} 
+	 
+	F_BFS();		// 불에대한 BFS실행 
+	
+	for(int i = 0; i < r; i++){
+		fill(vis[i],vis[i]+c, 0);
+	}
+	
+	int res = J_BFS();		// 지훈이에대한  BFS실행 
+	
+	if(res) {
+		cout << res << "\n";
+	} else {
+		cout << "IMPOSSIBLE" << "\n";
+	}
+}
